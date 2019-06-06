@@ -16,7 +16,7 @@ namespace games {
 		Deck _deck;
 		bool _playerWon;
 		bool _computerWon;
-		void pullCards();		
+		void pullCards();
 		void computerTurn();
 		void playerTurn();
 		void printResult() const;

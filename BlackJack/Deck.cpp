@@ -2,9 +2,20 @@
 #include "Deck.h"
 #include <string>
 #include <map>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <dos.h>
+#include <windows.h>
 
 Deck::Deck()
 {
+}
+
+void Deck::prepareDeck()
+{
+	fillDeck();
+	shuffle();
 }
 
 void Deck::fillDeck()
@@ -36,6 +47,16 @@ void Deck::fillDeck()
 
 }
 
+void Deck::shuffle()
+{
+	for (int i = _deck.size() - 1; i > 0; --i) {
+		int j = rand() % (i + 1);
+		Card temp = _deck[i];
+		_deck[i] = _deck[j];
+		_deck[j] = temp;
+	}
+}
+
 void Deck::clear() 
 {
 	_deck.clear();
@@ -48,6 +69,7 @@ void Deck::add(Card card)
 
 Card Deck::getCard(Deck& toDeck)
 {
+	Sleep(1000);
 	Card card = _deck.back();
 	_deck.pop_back();
 
@@ -87,18 +109,5 @@ int Deck::calculatePts()
 	return pts;
 }
 
-void Deck::shuffle()
-{
-	for (int i = _deck.size() - 1; i > 0; --i) {
-		int j = rand() % (i + 1);
-		Card temp = _deck[i];
-		_deck[i] = _deck[j];
-		_deck[j] = temp;
-	}
-}
 
-void Deck::prepareDeck()
-{
-	fillDeck();
-	shuffle();
-}
+

@@ -22,7 +22,7 @@ public:
 	string getName();
 	bool bankruptcy();
 	friend istream & operator >> (istream & is, Player& player) {
-		cout << "name: " << endl;
+		cout << "player name: " << endl;
 		is >> player._name;
 		cout << "buy in:" << endl;
 		is >> player.money;
