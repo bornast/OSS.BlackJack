@@ -1,33 +1,37 @@
 #include "pch.h"
 #include "BlackJack.h"
 #include "Card.h"
+#include "Deck.h"
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
+
 using namespace std;
 using namespace games;
 
-BlackJack::BlackJack(float playerMoney)
+
+BlackJack::BlackJack(Player player)
 {
-	_playerMoney = playerMoney;
+	_player = &player;
+	Player _computer("house", 10000000);
 }
 
 void BlackJack::start()
 {
 	while (!stopGame())
 	{
-		prepareDeck();
-		placeBet();
+		_deck.prepareDeck();
+		_player->placeBet();
 		pullCards();
 		getResults();
 		handleBet();
 		printResult();
-		if (_playerMoney < 100) break;
+		if (_player->bankruptcy()) break;
 		resetRound();
 	}
 
-	cout << "game done, player money is " << _playerMoney << endl;
+	cout << "game done, player money: " << _player->money << endl;
 		
 }
 
@@ -40,122 +44,6 @@ bool BlackJack::stopGame()
 
 }
 
-void BlackJack::prepareDeck()
-{
-	fillDeck();
-	shuffle();
-}
-
-void BlackJack::fillDeck()
-{
-	fillDiamonds();
-	fillHearts();
-	fillSpades();
-	fillClubs();
-}
-
-void BlackJack::fillDiamonds()
-{
-	_deck.push_back(Card("ace", "diamonds", 1));
-	_deck.push_back(Card("two", "diamonds", 2));
-	_deck.push_back(Card("three", "diamonds", 3));
-	_deck.push_back(Card("four", "diamonds", 4));
-	_deck.push_back(Card("five", "diamonds", 5));
-	_deck.push_back(Card("six", "diamonds", 6));
-	_deck.push_back(Card("seven", "diamonds", 7));
-	_deck.push_back(Card("eight", "diamonds", 8));
-	_deck.push_back(Card("nine", "diamonds", 9));
-	_deck.push_back(Card("jack", "diamonds", 10));
-	_deck.push_back(Card("queen", "diamonds", 10));
-	_deck.push_back(Card("king", "diamonds", 10));
-}
-
-void BlackJack::fillHearts()
-{
-	_deck.push_back(Card("ace", "hearts", 1));
-	_deck.push_back(Card("two", "hearts", 2));
-	_deck.push_back(Card("three", "hearts", 3));
-	_deck.push_back(Card("four", "hearts", 4));
-	_deck.push_back(Card("five", "hearts", 5));
-	_deck.push_back(Card("six", "hearts", 6));
-	_deck.push_back(Card("seven", "hearts", 7));
-	_deck.push_back(Card("eight", "hearts", 8));
-	_deck.push_back(Card("nine", "hearts", 9));
-	_deck.push_back(Card("jack", "hearts", 10));
-	_deck.push_back(Card("queen", "hearts", 10));
-	_deck.push_back(Card("king", "hearts", 10));
-}
-
-void BlackJack::fillSpades()
-{
-	_deck.push_back(Card("ace", "spades", 1));
-	_deck.push_back(Card("two", "spades", 2));
-	_deck.push_back(Card("three", "spades", 3));
-	_deck.push_back(Card("four", "spades", 4));
-	_deck.push_back(Card("five", "spades", 5));
-	_deck.push_back(Card("six", "spades", 6));
-	_deck.push_back(Card("seven", "spades", 7));
-	_deck.push_back(Card("eight", "spades", 8));
-	_deck.push_back(Card("nine", "spades", 9));
-	_deck.push_back(Card("jack", "spades", 10));
-	_deck.push_back(Card("queen", "spades", 10));
-	_deck.push_back(Card("king", "spades", 10));
-}
-
-void BlackJack::fillClubs()
-{
-	_deck.push_back(Card("ace", "clubs", 1));
-	_deck.push_back(Card("two", "clubs", 2));
-	_deck.push_back(Card("three", "clubs", 3));
-	_deck.push_back(Card("four", "clubs", 4));
-	_deck.push_back(Card("five", "clubs", 5));
-	_deck.push_back(Card("six", "clubs", 6));
-	_deck.push_back(Card("seven", "clubs", 7));
-	_deck.push_back(Card("eight", "clubs", 8));
-	_deck.push_back(Card("nine", "clubs", 9));
-	_deck.push_back(Card("jack", "clubs", 10));
-	_deck.push_back(Card("queen", "clubs", 10));
-	_deck.push_back(Card("king", "clubs", 10));
-}
-
-void BlackJack::shuffle()
-{
-	for (int i = _deck.size() - 1; i > 0; --i) {
-		int j = rand() % (i + 1);
-		Card temp = _deck[i];
-		_deck[i] = _deck[j];
-		_deck[j] = temp;
-	}
-
-}
-
-void BlackJack::placeBet()
-{
-	_playerBet = extractFloatValueFromInput("place a bet between 100 and " + to_string(_playerMoney));
-
-	if (_playerBet < 100 || _playerBet > _playerMoney)
-		_playerBet = 100;
-
-	_playerMoney -= _playerBet;
-}
-
-float BlackJack::extractFloatValueFromInput(string message) {
-
-	float returnValue;
-
-	cout << message << endl;
-	cin >> returnValue;
-	while (!cin.good())
-	{
-		cin.clear();
-		cin.ignore(INT_MAX, '\n');
-		cout << message << endl;
-		cin >> returnValue;
-	}
-
-	return returnValue;
-}
-
 void BlackJack::pullCards()
 {
 	giveTwoCards();
@@ -165,52 +53,27 @@ void BlackJack::pullCards()
 
 void BlackJack::giveTwoCards()
 {
-	printTurn("player", pullCard(_playerCards));
-	Card card = pullCard(_playerCards);
-	_playerPts = calculatePts(_playerCards);
-	printTurn("player", card, _playerPts);
+		
+	printTurn("player", _deck.getCard(_player->deck));
+	Card card = _deck.getCard(_player->deck);
+	_player->pts = _player->deck.calculatePts();
 
-	_computerFirstCard = pullCard(_computerCards);
-	printTurn("computer");
-	printTurn("computer", pullCard(_computerCards));
+	printTurn("player", card, _player->pts);
+		
+	_computer.firstCard = _deck.getCard(_computer.deck);
+	printTurn("house");
+	printTurn("house", _deck.getCard(_computer.deck));
 
 }
 
 void BlackJack::printTurn(string player, Card card) const
-{
+{		
 	cout << player << " takes " << card.getName() << " of " << card.getType() << endl << endl;
-}
-
-Card BlackJack::pullCard(vector<Card> &toDeck)
-{
-	Card card = _deck.back();
-	_deck.pop_back();
-
-	toDeck.push_back(card);
-	sortCards(toDeck);
-
-	return card;
-}
-
-void BlackJack::sortCards(vector<Card> &cards)
-{
-	for (int i = 0; i < cards.size() - 1; i++)
-	{
-		for (int j = i + 1; j < cards.size(); j++)
-		{
-			if (cards[i].getValue() < cards[j].getValue())
-			{
-				Card temp = cards[i];
-				cards[i] = cards[j];
-				cards[j] = temp;
-			}
-		}
-	}
 }
 
 void BlackJack::printTurn(string player, Card card, int playerPts) const
 {
-	cout << player << " takes " << card.getName() << " of " << card.getType() << endl;
+	cout << player << " takes " << card.getName() << " of " << card.getType() << endl << endl;
 	cout << player << " has " << playerPts << " points" << endl << endl;
 }
 
@@ -220,31 +83,20 @@ void BlackJack::printTurn(string player) const
 }
 
 void BlackJack::playerTurn()
-{
-	_playerPts = calculatePts(_playerCards);
-	while (!turnOver(_playerPts))
+{	
+	_player->pts = _player->deck.calculatePts();
+	
+	while (!turnOver(_player->pts))
 	{
 		if (hit())
 		{
-			Card card = pullCard(_playerCards);
-			_playerPts = calculatePts(_playerCards);
-			printTurn("player", card, _playerPts);
+			Card card = _deck.getCard(_player->deck);
+			_player->pts = _player->deck.calculatePts();
+			printTurn("player", card, _player->pts);
 
 		}
 		else break;
 	}
-}
-
-int BlackJack::calculatePts(vector<Card> çards)
-{
-	vector<Card>::iterator it;
-	int pts = 0;
-	for (it = çards.begin(); it < çards.end(); ++it)
-	{
-		int ptsToAdd = (*it).getName() == "ace" && pts + 11 <= 21 ? 11 : (*it).getValue();
-		pts += ptsToAdd;
-	}
-	return pts;
 }
 
 bool BlackJack::turnOver(int pts)
@@ -264,42 +116,44 @@ bool BlackJack::hit() const
 
 void BlackJack::computerTurn()
 {
+	_computer.pts = _computer.deck.calculatePts();
 	printComputerFirstCard();
-	_computerPts = calculatePts(_computerCards);
 
-	while (_computerPts < 17 && _playerPts <= 21)
-	{
-		Card card = pullCard(_computerCards);
-		_computerPts = calculatePts(_computerCards);
-		printTurn("computer", card, _computerPts);
+	while (_computer.pts < 17 && _player->pts <= 21)
+	{		
+		Card card = _deck.getCard(_computer.deck);
+		_computer.pts = _computer.deck.calculatePts();
+		printTurn("house", card, _computer.pts);
 
 	}
 }
 
 void BlackJack::printComputerFirstCard() const
 {
-	cout << "computer first card was " << _computerFirstCard.getName() << " of " << _computerFirstCard.getType() << endl << endl;
+	cout << "computer first card was " << _computer.firstCard.getName() << " of " << _computer.firstCard.getType() << endl << endl;
+	cout << "computer has " << _computer.pts << " points" << endl << endl;
 }
 
 void BlackJack::getResults()
 {
 
-	if (_playerPts > _computerPts && _playerPts <= 21)
+	if (_player->pts > _computer.pts && _player->pts <= 21)
 		_playerWon = true;
-	else if (_computerPts > _playerPts && _computerPts <= 21)
+	else if (_computer.pts > _player->pts && _computer.pts <= 21)
 		_computerWon = true;
-	else if (_playerPts > _computerPts)
+	else if (_player->pts > _computer.pts)
 		_computerWon = true;
-	else if (_computerPts > _playerPts)
+	else if (_computer.pts > _player->pts)
 		_playerWon = true;
 }
 
 void BlackJack::handleBet()
 {
 	if (_playerWon)
-		_playerMoney += _playerBet * 2;
+		_player->money += _player->bet * 2;
+	
 	else if (!_playerWon && !_computerWon)
-		_playerMoney += _playerBet;
+		_player->money += _player->bet;
 }
 
 void BlackJack::printResult() const
@@ -309,20 +163,19 @@ void BlackJack::printResult() const
 	if (!_computerWon && !_playerWon)
 		cout << "TIE";
 	else if (_playerWon)
-		cout << "player wins";
+		cout << "player won";
 	else if (_computerWon)
-		cout << "computer wins";
+		cout << "house won";
 	cout << endl;
-	cout << " player money: " << _playerMoney << endl;
+	cout << "player money: " << _player->money << endl;
 	cout << endl << endl;
 }
 
 void BlackJack::resetRound()
-{
-	_deck.clear();
-	_playerCards.clear();
-	_computerCards.clear();
+{	
+	_deck.clear();	
+	_player->deck.clear();
+	_computer.deck.clear();
 	_playerWon = false;
 	_computerWon = false;
 }
-
